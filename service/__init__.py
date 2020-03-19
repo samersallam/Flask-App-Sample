@@ -1,6 +1,5 @@
 import time
 from functools import wraps
-from flask import current_app as app
 from sqlalchemy import desc
 
 
@@ -15,15 +14,8 @@ class QueryStatus:
         return "Table: {}, Query: {}, Elapsed Time: {} [s]".format(
             self.table, self.function, self.elapsed_time)
 
-    def query_log(self):
-        return {
-            'table': self.table,
-            'query': self.function,
-            'elapsed_time': self.elapsed_time
-        }
-
     @staticmethod
-    def return_query_status(fn):
+    def get_query_status(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             st = time.clock()
@@ -33,18 +25,11 @@ class QueryStatus:
                              function=fn.__name__,
                              data=data,
                              elapsed_time=et)
-
-            # Logging (Keep the import here)
-            from api.utilities import RequestStatus
-            app.db_info_logger.info(
-                {**RequestStatus.get_request_context(), **qs.query_log()})
-
             return qs
-
         return wrapper
 
 
-class Service:
+class TableService:
     def __init__(self, database, table=None, per_page=10):
         self.database = database
         self.table = table
@@ -63,7 +48,7 @@ class Service:
             query = query.with_entities(*column_filter)
 
         # Grouping
-        if group_by is not None:
+        if group_by:
             query = query.group_by(group_by)
 
         # Ordering
@@ -73,7 +58,7 @@ class Service:
 
         return query
 
-    @QueryStatus.return_query_status
+    @QueryStatus.get_query_status
     def read(self, row_filter=None, column_filter=list(), group_by=None, order_by=dict(),
              count='first', page=None):
         """ Return query records """
@@ -90,30 +75,30 @@ class Service:
             pager = query.paginate(per_page=self.per_page, page=page)
             return self, {'page': pager.items, 'num_pages': pager.pages}
 
-    @QueryStatus.return_query_status
+    @QueryStatus.get_query_status
     def count(self, row_filter=None, column_filter=list()):
         """ Return number of records per query """
         query = self.query(row_filter, column_filter)
         return self, query.count()
 
-    @QueryStatus.return_query_status
+    @QueryStatus.get_query_status
     def is_available(self, row_filter):
         """ Check if a record is available """
 
         qs = self.count(row_filter)
         return self, qs.data > 0
 
-    @QueryStatus.return_query_status
+    @QueryStatus.get_query_status
     def create(self, new_record):
         """ Create a new record
             new_record: is an object of the model type
         """
 
         self.database.session.add(new_record)
-        self.commit('create', self.table.__name__)
+        self.commit()
         return self, None
 
-    @QueryStatus.return_query_status
+    @QueryStatus.get_query_status
     def update(self, id_, updated_record):
         """ Update an existing record
             updated_record: is a dictionary
@@ -121,33 +106,43 @@ class Service:
 
         query = self.query(self.table.id == id_)
         query.update(updated_record)
-        self.commit('update', self.table.__name__)
+        self.commit()
         return self, None
 
-    @QueryStatus.return_query_status
+    @QueryStatus.get_query_status
     def delete(self, id_):
         """ Delete an existing record """
 
         qs = self.read(self.table.id == id_)
         self.database.session.delete(qs.data)
-        self.commit('delete', self.table.__name__)
+        self.commit()
         return self, None
 
-    def commit(self, fn_name='Any', table_name='Any'):
-
+    def commit(self):
         try:
             self.database.session.commit()
 
         except Exception as e:
             self.database.session.rollback()
-
-            # Logging (Keep the import here)
-            from api.utilities import RequestStatus
-            app.db_exc_logger.exception({**RequestStatus.get_request_context(exception=True),
-                                         **{'query': fn_name, 'table': table_name}})
             raise e
 
-    # Some useful function to create the database
+
+class DatabaseService:
+    """ A class of some useful functions to deal with the database """
+    def __init__(self, database):
+        self.database = database
+
+    def reset_mysql_db(self):
+        self.reset_fk_check()
+        self.db_drop_all()
+        self.db_create_all()
+        self.set_fk_check()
+
+    def reset_sqlite_db(self):
+        self.db_drop_all()
+        self.db_create_all()
+        self.enforce_sqlite_fk_integrity()
+
     def db_create_all(self):
         print('creating the new tables..')
         self.database.create_all()
@@ -156,27 +151,16 @@ class Service:
         print('Dropping the old tables..')
         self.database.drop_all()
 
-    def set_fk(self):
+    def set_fk_check(self):
         # Activate foreign key checking
         self.database.engine.execute('SET FOREIGN_KEY_CHECKS = 1;')
 
-    def reset_fk(self):
+    def reset_fk_check(self):
         # De-activate foreign key checking
         self.database.engine.execute('SET FOREIGN_KEY_CHECKS = 0;')
 
-    def sqlite_enforce_fk_integrity(self):
+    def enforce_sqlite_fk_integrity(self):
         self.database.engine.execute('pragma foreign_keys = 1')
-
-    def reset_mysql_db(self):
-        self.reset_fk()
-        self.db_drop_all()
-        self.db_create_all()
-        self.set_fk()
-
-    def reset_sqlite_db(self):
-        self.db_drop_all()
-        self.db_create_all()
-        self.sqlite_enforce_fk_integrity()
 
     def set_db_charset(self, db_uri):
         """

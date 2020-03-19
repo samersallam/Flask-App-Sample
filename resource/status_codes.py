@@ -1,4 +1,5 @@
 class StatusCode:
+
     def __init__(self, code, message):
         self.code = code
         self.message = message
@@ -11,7 +12,7 @@ class StatusCode:
 successful_request = StatusCode(200, 'Successful request')
 bad_request = StatusCode(400, 'Bad request')
 var_bad_request = StatusCode(400, 'Bad request')
-unauthorized_request = StatusCode(403, 'The required resource is not found')
+unauthorized_request = StatusCode(403, 'You are not authorized')
 resource_not_found = StatusCode(404, 'The required resource is not found')
 request_assertion_error = StatusCode(410, 'Request assertion error')
 
