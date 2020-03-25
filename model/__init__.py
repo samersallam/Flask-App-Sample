@@ -4,3 +4,5 @@ from flask_migrate import Migrate
 print('Creating the DB ..')
 db = SQLAlchemy()
 migrate = Migrate()
+
+from .theme import Theme

@@ -45,25 +45,6 @@ class Logger:
         session = boto3.session.Session(region_name=os.environ['region_name'])
         environment = app.config['ENV_NAME']
 
-        # Add the database loggers
-        app.db_info_logger = Logger.create_watchtower_logger(
-            environment=environment,
-            name='database_info',
-            boto3_session=session,
-            send_interval=app.config['LOGGER_SEND_INTERVAL'],
-            log_group_retention_days=app.config['LOG_GROUP_RETENTION_DAYS'],
-            level=logging.INFO
-        )
-
-        app.db_exc_logger = Logger.create_watchtower_logger(
-            environment=environment,
-            name='database_exceptions',
-            boto3_session=session,
-            send_interval=app.config['LOGGER_SEND_INTERVAL'],
-            log_group_retention_days=app.config['LOG_GROUP_RETENTION_DAYS'],
-            level=logging.ERROR
-        )
-
         # Add the app loggers
         app.app_info_logger = Logger.create_watchtower_logger(
             environment=environment,
@@ -83,15 +64,3 @@ class Logger:
             level=logging.ERROR
         )
         return app
-
-
-# class RequestFormatter(logging.Formatter):
-#     def format(self, record):
-#         if has_request_context():
-#             record.url = request.url
-#             record.remote_addr = request.remote_addr
-#         else:
-#             record.url = None
-#             record.remote_addr = None
-#
-#         return super().format(record)

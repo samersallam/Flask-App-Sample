@@ -2,11 +2,11 @@ from flask import Flask
 from config import EnvironmentConfig
 from .logger import Logger
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from model import db, migrate
-from service import Service
+from sql_database_service.database_service import SQLiteDatabaseService, MySQLDatabaseService
 from service.db_admin import flk_admin, DBAdmin
 from schema import ma
-from jwt_auth import jwt
 from api import api
 
 
@@ -29,13 +29,17 @@ def create_app(environment):
         ##### DB Set up ####
         db.init_app(app)
 
-        db_svc = Service(db)
-        db_svc.set_db_charset(app.config['SQLALCHEMY_DATABASE_URI'])
-        db_svc.db_create_all()
+        db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+        if 'sqlite' in db_uri:
+            db_svc = SQLiteDatabaseService(db)
+        elif 'mysql' in db_uri:
+            db_svc = MySQLDatabaseService(db)
+            db_svc.set_charset(app.config['SQLALCHEMY_DATABASE_URI'])
 
         if config_class.SQLALCHEMY_DB_RESET:
-            db_svc.reset_sqlite_db()
-            # db_svc.reset_mysql_db()
+            db_svc.reset()
+        else:
+            db_svc.create_all()
 
         flk_admin.init_app(app)
         if config_class.FLASK_ADMIN_ACTIVE:
@@ -46,11 +50,15 @@ def create_app(environment):
 
         ##### End of  DB Set up ####
 
-        ma.init_app(app)
+        # Set up jwt manager
+        jwt = JWTManager()
         jwt.init_app(app)
+
+        # Setup the app schemas
+        ma.init_app(app)
+
+        # Set up the app namespaces
         api.init_app(app)
         api.update_description(app.config['ENV_NAME'])
-        # api.description = api.description.format(
-        #     app.config['ENV_NAME'], datetime.now().strftime())
 
     return app

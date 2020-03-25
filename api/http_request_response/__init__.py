@@ -2,22 +2,20 @@ from flask import request, has_request_context
 from flask import current_app as app
 from flask_jwt_extended import get_jwt_identity
 from functools import wraps
-from resource.status_codes import var_bad_request
+from http_status_code.standard import bad_request
 
 
-class RequestStatus:
+class RequestResponse:
 
-    def __init__(self, status_code=None, data=None, message=None, function=None):
+    def __init__(self, status_code=None, data=None, message=None):
         self.status_code = status_code
         self.data = data
         self.message = self.__message_to_str(message)
-        self.function = function
 
-    def update(self, status_code=200, data=None, message=None, function=None):
+    def update(self, status_code=200, data=None, message=None):
         self.status_code = status_code
         self.data = data
         self.message = self.__message_to_str(message)
-        self.function = function
 
     def __message_to_str(self, message):
         return message if message is None else str(message)
@@ -25,6 +23,8 @@ class RequestStatus:
     def __call__(self, *args, **kwargs):
         return self.__dict__
 
+
+class RequestUtilities:
     @staticmethod
     def get_request_context(exception=False):
         context = dict()
@@ -45,7 +45,7 @@ class RequestStatus:
                 if 'email' in claims:
                     context['email'] = claims['email']
             except:
-                if request.json is not None and 'email' in request.json:
+                if request.json and 'email' in request.json:
                     context['email'] = request.json['email']
                 else:
                     context['email'] = 'Anonymous'
@@ -61,18 +61,18 @@ class RequestStatus:
             try:
                 # Action
                 status, data = fn(*args, **kwargs)
+
                 # Logging
-                app.app_info_logger.info(RequestStatus.get_request_context())
+                app.app_info_logger.info(RequestUtilities.get_request_context())
 
             except Exception as e:
-                status, data = var_bad_request, None
+                status, data = bad_request, None
                 status.update_msg(e)
 
                 # Logging
-                app.app_exc_logger.exception(RequestStatus.get_request_context(exception=True))
+                app.app_exc_logger.exception(RequestUtilities.get_request_context(exception=True))
 
-            rs = RequestStatus(status_code=status.code, message=status.message,
-                               data=data, function=fn.__name__)
+            rs = RequestResponse(status_code=status.code, message=status.message, data=data)
             return rs()
 
         return wrapper
