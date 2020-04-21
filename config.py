@@ -7,6 +7,7 @@ load_dotenv()
 
 
 class Config(object):
+    APPLICATION_NAME = 'Flask API Sample'
     DEBUG = False
     TESTING = False
 
@@ -16,7 +17,7 @@ class Config(object):
     SQLALCHEMY_DB_RESET = False  # Do not change in any case
 
     # JWT Config
-    SECRET_KEY = os.environ['SECRET_KEY']
+    JWT_SECRET_KEY = os.environ['SECRET_KEY']
     JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(minutes=15)
     JWT_REFRESH_TOKEN_EXPIRES = datetime.timedelta(days=5)
     JWT_HEADER_TYPE = ''
@@ -38,7 +39,7 @@ class DevelopmentConfig(Config):
     ENV_NAME = 'Development'
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ['DEVELOPMENT_DATABASE_URI']
-    SQLALCHEMY_DB_RESET = False
+    SQLALCHEMY_DB_RESET = True
     FLASK_ADMIN_ACTIVE = True
 
 
@@ -50,13 +51,14 @@ class TestingConfig(Config):
 
 class StagingConfig(Config):
     ENV_NAME = 'Staging'
-    SQLALCHEMY_DATABASE_URI = os.environ['STAGING_DATABASE_URI']
+    SQLALCHEMY_DATABASE_URI = os.environ['STAGING_DATABASE_URI'] if 'STAGING_DATABASE_URI' in os.environ else None
     FLASK_ADMIN_ACTIVE = True
 
 
 class ProductionConfig(Config):
     ENV_NAME = 'Production'
-    SQLALCHEMY_DATABASE_URI = os.environ['PRODUCTION_DATABASE_URI']
+    SQLALCHEMY_DATABASE_URI = os.environ['PRODUCTION_DATABASE_URI'] if 'PRODUCTION_DATABASE_URI' in os.environ else None
+    JWT_SECRET_KEY = os.environ['SECRET_KEY'] if 'SECRET_KEY' in os.environ else None
 
 
 class EnvironmentConfig:

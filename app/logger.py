@@ -13,6 +13,7 @@ import logging
 import watchtower
 import boto3
 import os
+from config import Config
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 class Logger:
 
     @staticmethod
-    def create_watchtower_logger(environment, name, boto3_session, send_interval,
+    def create_watchtower_logger(application_name, environment, name, boto3_session, send_interval,
                                  log_group_retention_days, level):
         logger = logging.getLogger(name)
 
@@ -28,7 +29,7 @@ class Logger:
             handler = logging.StreamHandler()
         else:
             handler = watchtower.CloudWatchLogHandler(
-                log_group='api_{}_logs'.format(environment),
+                log_group='{}_{}_logs'.format(application_name.replace(' ', '_'), environment),
                 stream_name=name,
                 boto3_session=boto3_session,
                 send_interval=send_interval,
@@ -47,6 +48,7 @@ class Logger:
 
         # Add the app loggers
         app.app_info_logger = Logger.create_watchtower_logger(
+            application_name=Config.APPLICATION_NAME,
             environment=environment,
             name='app_info',
             boto3_session=session,
@@ -56,6 +58,7 @@ class Logger:
         )
 
         app.app_exc_logger = Logger.create_watchtower_logger(
+            application_name=Config.APPLICATION_NAME,
             environment=environment,
             name='app_exceptions',
             boto3_session=session,
@@ -63,4 +66,3 @@ class Logger:
             log_group_retention_days=app.config['LOG_GROUP_RETENTION_DAYS'],
             level=logging.ERROR
         )
-        return app

@@ -8,6 +8,7 @@ from sql_database_service.database_service import SQLiteDatabaseService, MySQLDa
 from service.db_admin import flk_admin, DBAdmin
 from schema import ma
 from api import api
+from business.seed import DataBaseSeed
 
 
 def create_app(environment):
@@ -38,8 +39,10 @@ def create_app(environment):
 
         if config_class.SQLALCHEMY_DB_RESET:
             db_svc.reset()
+            DataBaseSeed.seed()
         else:
             db_svc.create_all()
+
 
         flk_admin.init_app(app)
         if config_class.FLASK_ADMIN_ACTIVE:

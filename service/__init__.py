@@ -1,4 +1,5 @@
 from sql_database_service.table_service import TableService
-from model import db, Theme
+from model import db, Dummy
 
-theme_svc = TableService(db, Theme)
+
+dummy_svc = TableService(db, Dummy)
