@@ -1,7 +1,7 @@
 from http_status_code.standard import successful_request, resource_not_found
 from sql_database_service import RecordsPage
-from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy import func
+from sqlalchemy.orm.exc import UnmappedInstanceError
 
 
 class BusinessClassInterface:
@@ -50,13 +50,17 @@ class BusinessClass:
         return successful_request, self.single_schema.dump(new_record).data
 
     def update(self, id_, model_args):
-        count = self.service.count(self.model.id ==id_).data
+        count = self.service.count(self.model.id == id_).data
         if count == 0:
             return resource_not_found, None
 
         self.process_args(model_args)
+        print(model_args)
         self.service.update(id_, model_args)
         return successful_request, None
+
+    def get_records(self, records_ids):
+        return self.service.read(self.model.id.in_(records_ids), count='all').data
 
     def process_args(self, model_args):
         # To be implemented if the parameters are required to be processed
@@ -73,14 +77,15 @@ class BusinessClass:
 
     def get_all(self, qs_args):
         page_number = qs_args.get('page_number')
-        count = self.service.count().data
 
         row_filter = self.get_query_filter(qs_args)
         order_by = self.get_required_ordering(qs_args)
 
+        count = self.service.count(row_filter=row_filter).data
+
         if page_number:
             records = self.service.read(count='all', page=page_number,
-                                         row_filter=row_filter, order_by=order_by).data['page']
+                                        row_filter=row_filter, order_by=order_by).data['page']
             page = RecordsPage(count, self.many_schema.dump(records).data,
                                per_page=self.service.per_page, current_page=page_number)
         else:
@@ -108,11 +113,16 @@ class BusinessClass:
 
     def delete_related_records(self, id_):
 
-        for model, svc, field_name in self.related_tables:
-            row_filter = getattr(model, field_name) == id_
+        for  svc, field_name in self.related_tables:
+            row_filter = getattr(svc.table, field_name) == id_
             records = svc.read(row_filter=row_filter, count='all').data
+
             for rec in records:
                 svc.delete(rec.id)
+
+    def set_related_tables(self, related_tables):
+        # List of tuples [(svc, field_id)]
+        self.related_tables = related_tables
 
     def is_duplicate_string(self, field_name, value, execlude_id=None):
 

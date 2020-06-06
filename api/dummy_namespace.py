@@ -6,13 +6,12 @@ from .namespace_api import NamespaceAPI
 class DummyAPI(NamespaceAPI):
     pass
 
+authorization_object = {'post': None, 'get': None, 'put': None, 'delete': None, 'page': None}
 
-DummyAPI.set_up_namespace('dummy', dummmy_business)
-DummyAPI.create_crud_endpoints(
-    # Post
-    post_body_args_def=[StringArgument('name', required=True)],
-    # Update
-    update_body_args_def=[StringArgument('name', required=True)],
-    # Get All
-    get_all_qs_args_def=[NumberArgument('page_number', arg_type=int, required=False)]
-)
+dummy_api = DummyAPI('dummy', dummmy_business, authorization_object,
+                     post_body_args_def=[StringArgument('name', required=True)],
+                     update_body_args_def=[StringArgument('name', required=True)],
+                     get_all_qs_args_def=[NumberArgument('page_number', arg_type=int, required=False)]
+                     )
+
+dummy_api.create_crud_endpoints()

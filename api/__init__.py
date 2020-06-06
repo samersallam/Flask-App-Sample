@@ -21,9 +21,9 @@ api = NewApi(
 )
 
 
-from .dummy_namespace import DummyAPI
+from .dummy_namespace import dummy_api
 
 
 # Add the namespaces to the API
-api.add_namespace(DummyAPI.api)
+api.add_namespace(dummy_api.api)
 
