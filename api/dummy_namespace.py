@@ -1,10 +1,12 @@
 from http_request_args.argument import StringArgument, NumberArgument
+
 from business.dummy import dummmy_business
 from .namespace_api import NamespaceAPI
 
 
 class DummyAPI(NamespaceAPI):
     pass
+
 
 authorization_object = {'post': None, 'get': None, 'put': None, 'delete': None, 'page': None}
 

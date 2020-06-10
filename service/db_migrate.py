@@ -30,7 +30,8 @@ https://medium.com/the-andela-way/alembic-how-to-add-a-non-nullable-field-to-a-p
 Useful bug:
 https://stackoverflow.com/questions/32311366/alembic-util-command-error-cant-find-identifier
 
-
+Detect minor changes:
+https://stackoverflow.com/questions/58532518/why-flask-migrations-does-not-detect-a-fields-length-change
 """
 
 from app import create_app

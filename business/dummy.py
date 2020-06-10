@@ -1,7 +1,7 @@
-from . import BusinessClass
 from model import Dummy
-from service import dummy_svc
 from schema.dummy import dummy_schema, dummy_many_schema
+from service import dummy_svc
+from . import BusinessClass
 
 
 class DummyBusiness(BusinessClass):

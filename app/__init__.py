@@ -1,14 +1,15 @@
 from flask import Flask
-from config import EnvironmentConfig
-from .logger import Logger
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from model import db, migrate
 from sql_database_service.database_service import SQLiteDatabaseService, MySQLDatabaseService
-from service.db_admin import flk_admin, DBAdmin
-from schema import ma
+
 from api import api
 from business.seed import DataBaseSeed
+from config import EnvironmentConfig
+from model import db, migrate
+from schema import ma
+from service.db_admin import flk_admin, DBAdmin
+from .logger import Logger
 
 
 def create_app(environment):
@@ -42,7 +43,6 @@ def create_app(environment):
             DataBaseSeed.seed()
         else:
             db_svc.create_all()
-
 
         flk_admin.init_app(app)
         if config_class.FLASK_ADMIN_ACTIVE:

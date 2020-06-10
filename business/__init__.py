@@ -40,7 +40,7 @@ class BusinessClass:
         self.service = service
         self.single_schema = single_schema
         self.many_schema = many_schema
-        self.related_tables = related_tables  # List of tuples [(model, svc, field_id)]
+        self.related_tables = related_tables  # List of tuples [(svc, field_id)]
 
     def create(self, model_args):
         self.process_args(model_args)
@@ -113,7 +113,7 @@ class BusinessClass:
 
     def delete_related_records(self, id_):
 
-        for  svc, field_name in self.related_tables:
+        for svc, field_name in self.related_tables:
             row_filter = getattr(svc.table, field_name) == id_
             records = svc.read(row_filter=row_filter, count='all').data
 

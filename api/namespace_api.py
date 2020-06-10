@@ -1,8 +1,8 @@
 from flask import request
-from flask_restplus import Namespace, Resource
 from flask_jwt_auth import APIAuth
-from http_request_response import RequestUtilities
+from flask_restplus import Namespace, Resource
 from http_request_args.validation import RequestArgsValidator
+from http_request_response import RequestUtilities
 
 
 class NamespaceAPI:
@@ -39,8 +39,8 @@ class NamespaceAPI:
         class ItemPost(Resource):
             ##### Post
             @RequestUtilities.try_except
-            @RequestArgsValidator.args_validation(self.post_qs_args_def, self.post_body_args_def)
             @APIAuth.auth_required(authorization_object=self.authorization_object['post'])
+            @RequestArgsValidator.args_validation(self.post_qs_args_def, self.post_body_args_def)
             def post(inner_self):
                 """ Create a new record  """
                 return self.business_obj.create(request.body_args)
@@ -50,24 +50,24 @@ class NamespaceAPI:
             ##### Get
 
             @RequestUtilities.try_except
-            @RequestArgsValidator.args_validation(self.get_qs_args_def, self.get_body_args_def)
             @APIAuth.auth_required(authorization_object=self.authorization_object['get'])
+            @RequestArgsValidator.args_validation(self.get_qs_args_def, self.get_body_args_def)
             def get(inner_self, id_):
                 """ Get a record  """
                 return self.business_obj.get(id_)
 
             ##### Update
             @RequestUtilities.try_except
-            @RequestArgsValidator.args_validation(self.update_qs_args_def, self.update_body_args_def)
             @APIAuth.auth_required(authorization_object=self.authorization_object['put'])
+            @RequestArgsValidator.args_validation(self.update_qs_args_def, self.update_body_args_def)
             def put(inner_self, id_):
                 """ update a record """
                 return self.business_obj.update(id_, request.body_args)
 
             ##### Delete
             @RequestUtilities.try_except
-            @RequestArgsValidator.args_validation(self.delete_qs_args_def, self.delete_body_args_def)
             @APIAuth.auth_required(authorization_object=self.authorization_object['delete'])
+            @RequestArgsValidator.args_validation(self.delete_qs_args_def, self.delete_body_args_def)
             def delete(inner_self, id_):
                 """ Delete a record  """
                 return self.business_obj.delete(id_)
@@ -76,8 +76,8 @@ class NamespaceAPI:
         class ItemsCollection(Resource):
 
             @RequestUtilities.try_except
-            @RequestArgsValidator.args_validation(self.get_all_qs_args_def, self.get_all_body_args_def)
             @APIAuth.auth_required(authorization_object=self.authorization_object['page'])
+            @RequestArgsValidator.args_validation(self.get_all_qs_args_def, self.get_all_body_args_def)
             def get(inner_self):
                 """ Get a list of records  """
                 return self.business_obj.get_all(request.qs_args)
