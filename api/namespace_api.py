@@ -1,8 +1,8 @@
 from flask import request
-from flask_jwt_auth import APIAuth
 from flask_restplus import Namespace, Resource
-from http_request_args.validation import RequestArgsValidator
+from flask_jwt_auth import APIAuth
 from http_request_response import RequestUtilities
+from http_request_args.validation import RequestArgsValidator
 
 
 class NamespaceAPI:

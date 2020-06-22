@@ -1,3 +1,4 @@
+from flask_jwt_extended import get_jwt_identity
 from http_status_code.standard import successful_request, resource_not_found
 from sql_database_service import RecordsPage
 from sqlalchemy import func
@@ -40,7 +41,8 @@ class BusinessClass:
         self.service = service
         self.single_schema = single_schema
         self.many_schema = many_schema
-        self.related_tables = related_tables  # List of tuples [(svc, field_id)]
+        self.related_tables = related_tables  # List of tuples [(model, svc, field_id)]
+        self.claims = dict()
 
     def create(self, model_args):
         self.process_args(model_args)
@@ -124,10 +126,11 @@ class BusinessClass:
         # List of tuples [(svc, field_id)]
         self.related_tables = related_tables
 
-    def is_duplicate_string(self, field_name, value, execlude_id=None):
+    def is_duplicate_string(self, field_name, value, exclude_id=None, additional_filters=None):
 
-        record = self.service.read(func.lower(getattr(self.model, field_name)) == value.lower()).data
+        record = self.service.read(
+            row_filter=(func.lower(getattr(self.model, field_name)) == value.lower()) & additional_filters).data
 
-        if record is None or (record is not None and record.id == execlude_id):
+        if record is None or (record is not None and record.id == exclude_id):
             return False
         return True
