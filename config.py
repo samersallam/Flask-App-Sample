@@ -7,7 +7,7 @@ load_dotenv()
 
 
 class Config(object):
-    APPLICATION_NAME = 'Flask API Sample'
+    APPLICATION_NAME = 'Flask API Sample (SQL)'
     DEBUG = False
     TESTING = False
 
