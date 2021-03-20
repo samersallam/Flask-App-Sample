@@ -19,7 +19,7 @@ http-request-response==0.0.5
 http-status-code==0.0.5
 importlib-metadata==1.6.0
 itsdangerous==1.1.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 jmespath==0.9.5
 jsonschema==3.2.0
 Mako==1.1.2
