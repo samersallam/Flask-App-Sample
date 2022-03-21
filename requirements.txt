@@ -37,7 +37,7 @@ six==1.14.0
 sql-database-service==0.0.4
 SQLAlchemy==1.3.16
 urllib3==1.25.9
-waitress==1.4.3
+waitress==2.1.1
 watchtower==0.7.3
 Werkzeug==0.16.1
 WTForms==2.2.1
